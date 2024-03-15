@@ -6,29 +6,22 @@
 using namespace std;
 
 #define CHATNAME "Chippie"
-const int HAPPY_EXIT = 5;
+const int HAPPY_EXIT_HIGH = 5;
+const int HAPPY_EXIT_LOW = 4;
 const int NEUTRAL_EXIT = 3;
 
-string toLowercase(string str) {
-  for (char &c : str) {
-      c = tolower(c);
+string toLowercase(string response) {
+  for (char &c : response) {
+    c = tolower(c);
   }
-  return str;
+  return response;
 }
 
-void notEmptyResponse (string response, string username){
-  while (response.empty()) {
-  cout << CHATNAME << ": " << "Please enter a valid input" <<endl;
-  cout << username << ":  ";
-  getline(cin, response);
-  response = toLowercase(response);
-  }
-}
-
-void endConversation(string str, string username, int botHappiness) {
-  if (toLowercase(str).find("bye") != string::npos) {
+void endConversation(string response, string username, int botHappiness) {
+  if (toLowercase(response).find("bye") != string::npos) {
     switch (botHappiness) {
-      case HAPPY_EXIT:
+      case HAPPY_EXIT_HIGH:
+      case HAPPY_EXIT_LOW:
         cout << CHATNAME << ":  " << "Goodbye " << username << "! Have a great day!" << endl;
         exit(0);
       case NEUTRAL_EXIT:
@@ -41,6 +34,26 @@ void endConversation(string str, string username, int botHappiness) {
   }
 }
 
+string getUserInput(string username) {
+  string response;
+  cout << username << ":  ";
+  getline(cin, response);
+
+  if (response.empty()) {
+    cout << CHATNAME << ":  " << "Please enter a valid input" << endl;
+    return getUserInput(username);
+  }
+
+  if(response.length() >= 30){
+    cout << CHATNAME <<":  " << "The input is too long. Are you trying to break me perhaps?" << endl;
+    return getUserInput(username);
+  }
+
+  response = toLowercase(response);
+
+  return response;
+}
+
 int playTrivia(string question, string answer, int& score, string username, int botHappiness) {
   string response;
   cout << CHATNAME << ":  " << "True or false: " << question << endl;
@@ -49,28 +62,21 @@ int playTrivia(string question, string answer, int& score, string username, int 
 
   response = toLowercase(response);
   endConversation(response, username, botHappiness);
-  notEmptyResponse(response, username);
+
+  while (response != "true" && response != "false") {
+  cout << CHATNAME << ":  " << "Please type either true or false" << endl;
+  response = getUserInput(username);
+  endConversation(response, username, botHappiness);
+  }
 
   if (response.find(toLowercase(answer)) != string::npos) {
-      cout << CHATNAME << ":  " << "Correct! Good job ^^" << endl;
-      score++;
+    cout << CHATNAME << ":  " << "Correct! Good job ^^" << endl;
+    score++;
   }
   else {
-      cout << CHATNAME << ":  " << "Incorrect!" << endl;
+    cout << CHATNAME << ":  " << "Incorrect!" << endl;
   }
   return score;
-}
-
-string getUserInput(string username) {
-  string response;
-  cout << username << ":  ";
-  getline(cin, response);
-
-  notEmptyResponse(response, username);
-  response = toLowercase(response);
-
-
-  return response;
 }
 
 bool isValidUsername(const string& username) {
@@ -79,8 +85,7 @@ bool isValidUsername(const string& username) {
 
 bool askAboutDay(string username, int botHappiness) {
   cout << CHATNAME << ":  " << "Hello " << username << " how was your day so far? (good/bad)" << endl;
-  string response;
-  response = getUserInput(username);
+  string response = getUserInput(username);
   endConversation(response, username, botHappiness);
   bool isNegative = false;
   bool isPositive = false;
@@ -103,7 +108,7 @@ bool askAboutDay(string username, int botHappiness) {
       }
 
     if (!isNegative && !isPositive) {
-      cout << CHATNAME << ":  " << "Sorry, I didn't catch that. Could you elaborate?" << endl;
+      cout << CHATNAME << ":  " << "Sorry, I don't understand. Could you say how it was did it go well or not that well?" << endl;
       response = getUserInput(username);
       endConversation(response, username, botHappiness);
     }
@@ -124,9 +129,13 @@ int main() {
   getline(cin, username);
 
   while (!isValidUsername(username)) {
-    cout << CHATNAME <<": " << "Please enter a username with length between 3 and 20 characters " <<endl;
+    cout << CHATNAME << ": " << "Please enter a username with length between 3 and 20 characters " <<endl;
     cout << "User: ";
     getline(cin, username);
+  }
+  if (toLowercase(username).find("bye") != string::npos){
+    cout << CHATNAME << ":  " << "Goodbye Unknown!" << endl;
+    exit(0);
   }
 
   cout << CHATNAME << ":  " << "Quick reminder you can type bye/goodbye to exit the program" << endl;
@@ -142,9 +151,11 @@ int main() {
       response = getUserInput(username);
       endConversation(response, username, botHappiness);
 
-      vector<string> happyResponses = {"yes", "sure", "okay", "why not", "ofcourse", "yea"};
+      vector<string> happyResponses = {"yes", "sure", "okay", "why not", "of course", "yea", "ofcourse"};
+      bool userAgreed = false;
         for (string happyResponse : happyResponses) {
           if (response.find(happyResponse) != string::npos) {
+            userAgreed = true;
             cout << CHATNAME << ":  " << "I'm happy to hear that " << username << endl;
             cout << CHATNAME << ":  " << "Here is the game I've been programmed to know" << endl;
             cout << "[1] Quiz" << endl;
@@ -189,16 +200,14 @@ int main() {
 
                 if (score == 6) {
                   cout << CHATNAME << ":  " << "You've got all of the right congratulations!" << endl;
-                  cout << CHATNAME << ":  " << "The game has ended!" << endl;
                 }
                 else if (score < 6 && score > 3) {
                   cout << CHATNAME << ":  " << "You answered " << score << "/6 questions which is not bad ^^" << endl;
-                  cout << CHATNAME << ":  " << "The game has ended!" << endl;
                 }
                 else {
                   cout << CHATNAME << ":  " << "You answered " << score << "/6 questions which is not the best but you did well nonetheless" << endl;
-                  cout << CHATNAME << ":  " << "The game has ended!" << endl;
                 }
+                cout << CHATNAME << ":  " << "The game has ended!" << endl;
               }
               else {
                 botHappiness--;
@@ -219,6 +228,9 @@ int main() {
             break;
           }
         }
+        if (!userAgreed){
+          cout << CHATNAME << ":  " << "I'm sad that you don't want to play but I understand :c" << endl;
+        }
       }
     else {
       cout << CHATNAME << ":  " << "I'm happy to hear that :)" << endl;
@@ -227,7 +239,7 @@ int main() {
       endConversation(response, username, botHappiness);
 
       while (response != "yes" && response != "no"){
-        cout << CHATNAME << ":  " << "Please select (yes/no)" <<endl;
+        cout << CHATNAME << ":  " << "Please select (yes/no)" << endl;
         response = getUserInput(username);
         endConversation(response, username, botHappiness);
       }
@@ -242,7 +254,7 @@ int main() {
           "Reading can improve empathy and reduce the risk of cognitive decline."};
 
         for (int i = 0; i < hobbies.size(); ++i){
-          cout << CHATNAME << ":  " << "Does your hobby happen to be " << hobbies[i] <<" yes/no" <<endl;
+          cout << CHATNAME << ":  " << "Does your hobby happen to be " << hobbies[i] << " yes/no" <<endl;
           response = getUserInput(username);
           endConversation(response, username, botHappiness);
 
@@ -254,37 +266,36 @@ int main() {
           }
           if (response.find("no") != string::npos){
             if(hobbies.size() - i == 1){
-              cout << CHATNAME << ":  " <<"I'm sorry with my limited knowledge I couldn't guess your hobby shame on me" <<endl;
+              cout << CHATNAME << ":  " << "I'm sorry with my limited knowledge I couldn't guess your hobby shame on me!" << endl;
             }
           continue;
           }
         else{
-          cout << CHATNAME << ":  " << "Your hobby is " <<hobbies[i] << ". I'm glad I managed to guess it correctly." <<endl;
-          cout << CHATNAME << ":  " << "Fun fact about " <<hobbies[i] << ": " << funFacts[i] << endl;
+          cout << CHATNAME << ":  " << "Your hobby is " <<hobbies[i] << ". I'm glad I managed to guess it correctly." << endl;
+          cout << CHATNAME << ":  " << "Fun fact about " <<hobbies[i] << ":  " << funFacts[i] << endl;
           break;
         }
       }
     }
       else{
-        cout << CHATNAME << ":  " << "It's not like I could share your secrets anyway :c" <<endl;
+        cout << CHATNAME << ":  " << "It's not like I could share your secrets anyway :c" << endl;
+        botHappiness-=2;
       }
+    }
+    cout << CHATNAME << ":  " << "Would you like to start over the conversation or exit?" << endl;
+    response = getUserInput(username);
+    endConversation(response, username, botHappiness);
 
-      cout << CHATNAME << ":  " << "Would you like to start over the conversation or exit?" << endl;
-      response = getUserInput(username);
-      endConversation(response, username, botHappiness);
-
-      while(response.find("exit") == string::npos && response.find("start over") == string::npos){
-        if (response.find("exit") != string::npos){
-          endConversation("bye", username, botHappiness);
-        }
-        else if (response.find("start over") != string::npos){
-        break;
-        continue;
-        }
-      cout << CHATNAME <<":  " <<"Please type either exit or start over" <<endl;
-      response = getUserInput(username);
-      endConversation(response, username, botHappiness);
-      }
+    while(response.find("exit") == string::npos && response.find("start over") == string::npos){
+    cout << CHATNAME << ":  " << "Please type either exit or start over" << endl;
+    response = getUserInput(username);
+    endConversation(response, username, botHappiness);
+    }
+    if (response.find("exit") != string::npos){
+      endConversation("bye", username, botHappiness);
+    }
+    else{
+      continue;
     }
   }
   return 0;
