@@ -3,7 +3,9 @@
 #include <stdexcept>
 #include "ErrorHandler.h"
 
-User::User() {}
+User::User() {
+  setUsername();
+}
 
 void User::setUsername() {
   ErrorHandler errorHandler;

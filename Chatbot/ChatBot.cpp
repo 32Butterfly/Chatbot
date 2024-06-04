@@ -6,11 +6,8 @@
 #include "UserInput.h"
 #include "ErrorHandler.h"
 
-ChatBot::ChatBot() {
+ChatBot::ChatBot(std::string username) {
   srand(static_cast<unsigned int>(time(0)));
-}
-
-void ChatBot::startChatBot(const std::string& username) {
   greetUser(username);
 }
 
@@ -95,6 +92,7 @@ bool ChatBot::gameMenu(const std::string& username) {
     if (response == "1"){
       break; // Break out of the loop if the user selects option 1
     }
+
     userInput.setResponse(username);
     response = userInput.getResponse();
   }

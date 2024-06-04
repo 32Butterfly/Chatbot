@@ -61,8 +61,7 @@ private:
   void mathScoreFeedback();
 
 public:
-  ChatBot();
-  void startChatBot(const std::string& username);
+  ChatBot(std::string username);
   bool askAboutUserDay(const std::string& username);
   void playTrivia(const std::string& username);
   void askAboutHobbies(const std::string& username);

@@ -23,10 +23,8 @@ int main() {
 
   try {
     User user;
-    user.setUsername(); //Prompt the user to set their username
 
-    ChatBot chatBot;
-    chatBot.startChatBot(user.getUsername()); // Start the chatbot and greet the user
+    ChatBot chatBot(user.getUsername());
 
     while (true) {
       // Ask the user about their day and store their response
